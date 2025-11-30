@@ -1,0 +1,37 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from sympy import sympify, solve, integrate, diff
+from typing import Optional
+
+app = FastAPI()
+
+# تمكين CORS لربط الواجهة الأمامية بالخلفية بشكل دائم
+origins = [
+    "https://flutter-flow--sparkess145.replit.app"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def read_root():
+    return {"message": "Scientific Calculator Backend is running (Permanent Deployment)."}
+
+@app.post("/calculate")
+async def calculate_expression(expression: str, operation: Optional[str] = None, variable: Optional[str] = 'x'):
+    try:
+        if operation == "integral":
+            result = integrate(sympify(expression), variable)
+        elif operation == "derivative":
+            result = diff(sympify(expression), variable)
+        else:
+            result = sympify(expression)
+            
+        return {"result": str(result)}
+    except Exception as e:
+        return {"result": f"Error: {e}"}
