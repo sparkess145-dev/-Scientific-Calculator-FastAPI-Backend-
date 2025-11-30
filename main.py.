@@ -1,13 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sympy import sympify, solve, integrate, diff
-from typing import Optional
+# Import standard SymPy functions for math operations
+from sympy import integrate, diff, solve, simplify, parse_expr
 
+# Initialize FastAPI application
 app = FastAPI()
 
-# تمكين CORS لربط الواجهة الأمامية بالخلفية بشكل دائم
+# CORS configuration to allow connections from your frontend
+# You must replace the origins list with your FINAL FlutterFlow domain once known
 origins = [
-    "https://flutter-flow--sparkess145.replit.app"
+    "https://flutter-flow--sparkess145.replit.app", # Old Replit placeholder
+    "*", # Temporary: Allows all origins for testing Render deployment
 ]
 
 app.add_middleware(
@@ -23,15 +26,36 @@ def read_root():
     return {"message": "Scientific Calculator Backend is running (Permanent Deployment)."}
 
 @app.post("/calculate")
-async def calculate_expression(expression: str, operation: Optional[str] = None, variable: Optional[str] = 'x'):
+def calculate_expression(expression: str, operation: str = None, variable: str = 'x'):
+    """
+    Handles mathematical operations (Calculation, Integration, Differentiation, Solving).
+    """
     try:
-        if operation == "integral":
-            result = integrate(sympify(expression), variable)
-        elif operation == "derivative":
-            result = diff(sympify(expression), variable)
-        else:
-            result = sympify(expression)
+        # Safely parse the input string into a SymPy expression
+        parsed_expression = parse_expr(expression)
+        
+        # 1. Solving 
+        if operation == "solve":
+            # Solves the expression equal to zero for the specified variable
+            result = solve(parsed_expression, variable)
+        
+        # 2. Integration
+        elif operation == "integral":
+            result = integrate(parsed_expression, variable)
             
+        # 3. Differentiation
+        elif operation == "derivative":
+            result = diff(parsed_expression, variable)
+            
+        # 4. Standard Calculation / Simplification (Default operation)
+        else:
+            result = simplify(parsed_expression)
+
+        # Return the result as a string
         return {"result": str(result)}
+
     except Exception as e:
+        # Return a generic error message
         return {"result": f"Error: {e}"}
+
+# End of main.py
