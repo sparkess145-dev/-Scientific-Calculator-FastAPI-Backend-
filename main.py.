@@ -1,16 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-# Import standard SymPy functions for math operations
-from sympy import integrate, diff, solve, simplify, parse_expr
+# Use standard SymPy functions and symbols
+from sympy import integrate, diff, solve, simplify, parse_expr, symbols
 
 # Initialize FastAPI application
 app = FastAPI()
 
-# CORS configuration to allow connections from your frontend
-# You must replace the origins list with your FINAL FlutterFlow domain once known
+# CORS configuration
 origins = [
-    "https://flutter-flow--sparkess145.replit.app", # Old Replit placeholder
-    "*", # Temporary: Allows all origins for testing Render deployment
+    "https://flutter-flow--sparkess145.replit.app", # Placeholder/Old link
+    "*", # Allow all origins temporarily for testing
 ]
 
 app.add_middleware(
@@ -28,26 +27,31 @@ def read_root():
 @app.post("/calculate")
 def calculate_expression(expression: str, operation: str = None, variable: str = 'x'):
     """
-    Handles mathematical operations (Calculation, Integration, Differentiation, Solving).
+    Handles mathematical operations using SymPy.
     """
     try:
-        # Safely parse the input string into a SymPy expression
+        # 1. Define the variable as a SymPy symbol (e.g., if variable='x', then x is a symbol)
+        sym_var = symbols(variable)
+        
+        # 2. Safely parse the input string into a SymPy expression
         parsed_expression = parse_expr(expression)
         
-        # 1. Solving 
+        # 3. Apply the requested operation
+        
+        # Solving
         if operation == "solve":
             # Solves the expression equal to zero for the specified variable
-            result = solve(parsed_expression, variable)
+            result = solve(parsed_expression, sym_var)
         
-        # 2. Integration
+        # Integration
         elif operation == "integral":
-            result = integrate(parsed_expression, variable)
+            result = integrate(parsed_expression, sym_var)
             
-        # 3. Differentiation
+        # Differentiation
         elif operation == "derivative":
-            result = diff(parsed_expression, variable)
+            result = diff(parsed_expression, sym_var)
             
-        # 4. Standard Calculation / Simplification (Default operation)
+        # Standard Calculation / Simplification (Default)
         else:
             result = simplify(parsed_expression)
 
@@ -57,5 +61,3 @@ def calculate_expression(expression: str, operation: str = None, variable: str =
     except Exception as e:
         # Return a generic error message
         return {"result": f"Error: {e}"}
-
-# End of main.py
